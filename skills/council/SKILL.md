@@ -20,10 +20,11 @@ In T3 Code, use `orchestrator_capabilities` to resolve the models, then
 `delegate_task` to start one delegate per model in parallel. In GitHub
 Copilot, start one background `task` per member with
 `agent_type: "code-review"`, `model` set to that member, and
-`reasoning_effort: "high"`. Pick the models from the list the `task` tool
-shows. Do not hardcode IDs. Elsewhere, use the harness's subagent tools. If
-you cannot reach three providers, or a named member is unavailable, report it
-instead of substituting.
+`reasoning_effort: "high"`. This skill explicitly requires setting `model` and
+`reasoning_effort` on each member `task`; do not leave them to harness
+defaults. Pick the models from the list the `task` tool shows. Do not hardcode
+IDs. Elsewhere, use the harness's subagent tools. If you cannot reach three
+providers, or a named member is unavailable, report it instead of substituting.
 
 Give each delegate the request and relevant context. For review or feedback,
 keep their work read-only. Collect their responses and summarize the useful
