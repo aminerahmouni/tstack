@@ -65,7 +65,8 @@ end your turn. Its exit wakes you.
 In GitHub Copilot, before the first `ready` wait, request Copilot code review
 unless it already reviewed or was requested on the PR:
 `gh pr edit <pr> --repo <owner/name> --add-reviewer @copilot`. If that fails,
-wait with `--until green` instead.
+wait with `--until green` instead, unless Greptile or Macroscope reviews this
+repo.
 
 Start it again after you push, after you handle an exit 1, and after a resume.
 It remembers what it already reported, so nothing that arrived in between is
