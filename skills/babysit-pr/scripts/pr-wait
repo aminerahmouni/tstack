@@ -483,10 +483,9 @@ class Watcher:
                         self.emit(f"summary:{s['id']}:{new}", f"{bot} summary changed on {short}: {text} {s['url']}")
         # Copilot code review reviews faster, so it gates only on PRs where
         # Greptile and Macroscope have not shown up.
-        if any(bot in bot_status for bot in GATING_BOTS if bot != COPILOT_REVIEW):
+        copilot_gates = not any(bot in bot_status for bot in GATING_BOTS if bot != COPILOT_REVIEW)
+        if not copilot_gates:
             reviewed = [bot for bot in reviewed if bot != COPILOT_REVIEW]
-        elif self.until == "ready" and COPILOT_REVIEW in bot_status and COPILOT_REVIEW not in reviewed:
-            self.request_copilot(pr, head)
 
         # Base branch and merge state.
         base_oid = ((pr.get("baseRef") or {}).get("target") or {}).get("oid")
@@ -537,6 +536,8 @@ class Watcher:
                 self.finish(1, [dirty_line])
             if fail_lines:
                 self.finish(1, fail_lines)
+            if self.until == "ready" and copilot_gates and COPILOT_REVIEW in bot_status and COPILOT_REVIEW not in reviewed:
+                self.request_copilot(pr, head)
             if green and self.until == "green":
                 self.reported.add(checks_key)
                 self.finish(0, [f"green on {short}: {summary}{self.behind(base, base_oid, head)}"])
