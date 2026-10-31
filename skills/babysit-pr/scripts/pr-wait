@@ -11,7 +11,8 @@ Progress and errors that do not end the run go to stderr.
 --until
   green       required checks passed on the current head (every CI check when
               the base branch requires none)
-  ready      green, Greptile or Macroscope reviewed the current head, and no
+  ready      green, Greptile or Macroscope reviewed the current head (or
+              Copilot code review, on PRs where neither has shown up), and no
               review thread is unresolved (default)
   any-change  stop after the first poll that prints an event
 
@@ -27,8 +28,8 @@ Events
   - all checks finished on the head (one summary line)
   - a new comment, review, thread, or thread reply from someone other than the
     PR author or the gh user
-  - Greptile, Macroscope, or CodeRabbit finished on the head, or a Greptile or
-    Macroscope summary changed after that
+  - Greptile, Macroscope, Copilot code review, or CodeRabbit finished on the
+    head, or a Greptile or Macroscope summary changed after that
   - the base branch moved and the new commits touch files in this PR
   - merge state became BEHIND or DIRTY
   - the PR merged or closed
@@ -59,7 +60,10 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, NoReturn
 
-GATING_BOTS = ("greptile", "macroscope")
+# Copilot code review matches by its full login, so other Copilot logins
+# (copilot-swe-agent, Copilot) do not count as it.
+COPILOT_REVIEW = "copilot-pull-request-reviewer"
+GATING_BOTS = ("greptile", "macroscope", COPILOT_REVIEW)
 ADVISORY_BOTS = ("coderabbit",)
 # CI and deploy bots report through checks. Their PR comments are status reports.
 STATUS_BOTS = ("github-actions", "vercel", "netlify", "railway", "cloudflare")
@@ -451,6 +455,10 @@ class Watcher:
                     if was_done and old and old != new:
                         text = verdict(s["body"]) or snippet(s["body"])
                         self.emit(f"summary:{s['id']}:{new}", f"{bot} summary changed on {short}: {text} {s['url']}")
+        # Copilot code review reviews faster, so it gates only on PRs where
+        # Greptile and Macroscope have not shown up.
+        if any(bot in bot_status for bot in GATING_BOTS if bot != COPILOT_REVIEW):
+            reviewed = [bot for bot in reviewed if bot != COPILOT_REVIEW]
 
         # Base branch and merge state.
         base_oid = ((pr.get("baseRef") or {}).get("target") or {}).get("oid")
@@ -486,7 +494,7 @@ class Watcher:
             if self.required
             else "",
             ", ".join(bot_status[b] for b in GATING_BOTS + ADVISORY_BOTS if b in bot_status)
-            or "no Greptile or Macroscope yet",
+            or "no Greptile, Macroscope, or Copilot review yet",
             f"{len(unresolved)} unresolved threads",
             f"merge state {merge_state}",
         ]
@@ -503,7 +511,8 @@ class Watcher:
             if green and self.until == "green":
                 self.reported.add(checks_key)
                 self.finish(0, [f"green on {short}: {summary}{self.behind(base, base_oid, head)}"])
-            # ready waits for Greptile or Macroscope, never for CodeRabbit.
+            # ready waits for Greptile, Macroscope, or Copilot code review, never
+            # for CodeRabbit.
             if green and reviewed:
                 if unresolved:
                     self.finish(1, [f"blocked by {len(unresolved)} unresolved threads on {short}: {' '.join(unresolved)}"])
