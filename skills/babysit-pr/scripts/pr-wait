@@ -14,7 +14,8 @@ Progress and errors that do not end the run go to stderr.
               minutes of seeing the head when there are none at all)
   ready      green, Greptile or Macroscope reviewed the current head (or
               Copilot code review, on PRs where neither has shown up), and no
-              review thread is unresolved (default)
+              review thread is unresolved (default). If Copilot code review
+              reviewed an earlier head, it is requested again on the new one.
   any-change  stop after the first poll that prints an event
 
 Exit codes
@@ -95,6 +96,7 @@ query($owner: String!, $name: String!, $number: Int!) {
       author { login }
       baseRef { target { oid } }
       comments(last: 100) { nodes { id url body author { login __typename } } }
+      reviewRequests(first: 100) { nodes { requestedReviewer { ... on Bot { login } } } }
       reviews(last: 100) {
         nodes { id url state body commit { oid } author { login __typename } }
       }
@@ -354,6 +356,18 @@ class Watcher:
             return ""
         return f"; {count} commit{'' if count == '1' else 's'} behind {base}"
 
+    def request_copilot(self, pr: Json, head: str) -> None:
+        """Copilot code review reviews a new push only when a ruleset or the
+        user's settings ask it to. Otherwise ready would wait forever, so ask
+        once per head unless it is already requested."""
+        key = f"copilot-request:{head}"
+        requested = {(n.get("requestedReviewer") or {}).get("login") for n in pr["reviewRequests"]["nodes"]}
+        if key in self.reported or COPILOT_REVIEW in requested:
+            return
+        gh(["pr", "edit", str(self.pr), "-R", self.repo, "--add-reviewer", "@copilot"])
+        self.reported.add(key)
+        log(f"requested Copilot code review on {head[:7]}")
+
     def poll(self) -> None:
         pr = self.fetch_pr()
         if pr["state"] == "MERGED":
@@ -471,6 +485,8 @@ class Watcher:
         # Greptile and Macroscope have not shown up.
         if any(bot in bot_status for bot in GATING_BOTS if bot != COPILOT_REVIEW):
             reviewed = [bot for bot in reviewed if bot != COPILOT_REVIEW]
+        elif self.until == "ready" and COPILOT_REVIEW in bot_status and COPILOT_REVIEW not in reviewed:
+            self.request_copilot(pr, head)
 
         # Base branch and merge state.
         base_oid = ((pr.get("baseRef") or {}).get("target") or {}).get("oid")
