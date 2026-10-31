@@ -50,7 +50,8 @@ unresolved threads, PR closed), and 2 on bad input.
 
 - `ready` (default): required checks green, Greptile or Macroscope reviewed
   the head (or Copilot code review, on PRs where neither has shown up), and no
-  unresolved threads. Use this to babysit.
+  unresolved threads. If Copilot code review reviewed an earlier head, it
+  requests it again. Use this to babysit.
 - `green`: required checks only. With no CI checks at all, it waits 2 minutes
   for them to appear. Use it when no Greptile, Macroscope, or Copilot code
   review runs on each push.
