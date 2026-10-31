@@ -17,9 +17,13 @@ those. Otherwise pick the latest flagship model from each provider, for
 example Claude Opus, GPT Sol, and Gemini Pro.
 
 In T3 Code, use `orchestrator_capabilities` to resolve the models, then
-`delegate_task` to start one delegate per model in parallel. Elsewhere, use
-the harness's subagent tools. If you cannot reach three providers, or a named
-member is unavailable, report it instead of substituting.
+`delegate_task` to start one delegate per model in parallel. In GitHub
+Copilot, start one background `task` per member with
+`agent_type: "code-review"`, `model` set to that member, and
+`reasoning_effort: "high"`. Pick the models from the list the `task` tool
+shows. Do not hardcode IDs. Elsewhere, use the harness's subagent tools. If
+you cannot reach three providers, or a named member is unavailable, report it
+instead of substituting.
 
 Give each delegate the request and relevant context. For review or feedback,
 keep their work read-only. Collect their responses and summarize the useful

@@ -38,7 +38,7 @@ branch conflicts.
 ### Everywhere else: `pr-wait`
 
 Wait with `scripts/pr-wait` from this skill's directory (use its absolute
-path).
+path). GitHub Copilot shows that directory as "Base directory for this skill".
 
 ```bash
 pr-wait <pr> [--repo owner/name] [--until ready|green|any-change]
@@ -56,7 +56,8 @@ unresolved threads, PR closed), and 2 on bad input.
 
 In Claude Code, run it with the Monitor tool (`timeout_ms: 3600000`), so each
 line wakes you. Without a monitor, run it as one long command. It ends on its
-own.
+own. In GitHub Copilot, run it with bash `mode: "async"`, not detached, then
+end your turn. Its exit wakes you.
 
 Start it again after you push, after you handle an exit 1, and after a resume.
 It remembers what it already reported, so nothing that arrived in between is

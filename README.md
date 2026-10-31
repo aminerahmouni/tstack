@@ -1,9 +1,9 @@
 # tstack
 
 The agent skills I use every day, cleaned up so anyone can use them. They work
-in Claude Code and Codex. Some use [T3 Code](https://github.com/pingdotgg/t3code)
-features when they are available and fall back to native tools when they are
-not.
+in Claude Code, Codex, and GitHub Copilot. Some use
+[T3 Code](https://github.com/pingdotgg/t3code) features when they are
+available and fall back to native tools when they are not.
 
 ## Skills
 
@@ -39,12 +39,22 @@ This installs every skill at once, so the skills that call each other all
 work. The plugin namespaces the skills, for example `/tstack:full-send`, and
 saying the trigger phrase still works.
 
+### GitHub Copilot plugin
+
+```bash
+copilot plugin marketplace add t3dotgg/tstack
+copilot plugin install tstack@tstack
+```
+
+This uses the same plugin files and installs every skill at once.
+
 ### Manual copy
 
 ```bash
 git clone https://github.com/t3dotgg/tstack
 cp -R tstack/skills/* ~/.claude/skills/   # Claude Code
 cp -R tstack/skills/* ~/.codex/skills/    # Codex
+cp -R tstack/skills/* ~/.copilot/skills/  # GitHub Copilot
 ```
 
 ## Requirements
@@ -52,8 +62,11 @@ cp -R tstack/skills/* ~/.codex/skills/    # Codex
 - An authenticated [GitHub CLI](https://cli.github.com) (`gh`).
 - `python3` for `babysit-pr`'s `pr-wait` script.
 - `council` and `sol-loop` need subagents on other providers' models. T3 Code
-  does this with `delegate_task`. Otherwise you need a harness that can run
-  those models.
+  does this with `delegate_task`, and GitHub Copilot with `task`. Otherwise
+  you need a harness that can run those models.
+- In GitHub Copilot's Autopilot mode, `full-send` and `full-stop` need `git`,
+  `gh`, and `python3` approved ahead of time. Otherwise Autopilot denies them.
+  Approve them, or use Interactive mode and answer the prompts.
 
 ## Make them yours
 
