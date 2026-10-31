@@ -62,6 +62,12 @@ line wakes you. Without a monitor, run it as one long command. It ends on its
 own. In GitHub Copilot, run it with bash `mode: "async"`, not detached, then
 end your turn. Its exit wakes you.
 
+In GitHub Copilot, before the first `ready` wait, request Copilot code review
+unless it already reviewed or was requested on the PR:
+`gh pr edit <pr> --repo <owner/name> --add-reviewer @copilot`. If that fails,
+wait with `--until green` instead, unless Greptile or Macroscope reviews this
+repo.
+
 Start it again after you push, after you handle an exit 1, and after a resume.
 It remembers what it already reported, so nothing that arrived in between is
 lost. If it says another pid already watches the PR, do not start a second one.

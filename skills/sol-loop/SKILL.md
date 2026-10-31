@@ -54,8 +54,10 @@ only if exposed. Use `delegate_task` every round (`role: "review"`,
 
 If T3 tools are not listed, try one direct capability call. Outside T3, use
 a native Sol subagent and keep its ID. In GitHub Copilot, start a background
-`task` with `agent_type: "code-review"`, the latest GPT Sol from the `task`
-tool's model list, and an explicit `reasoning_effort`. Save its agent ID. In
+`task` with `agent_type: "code-review"`, `model` set to the latest GPT Sol from
+the `task` tool's model list, and an explicit `reasoning_effort`. This skill
+explicitly requires setting `model` and `reasoning_effort` on each reviewer
+`task`; do not leave them to harness defaults. Save its agent ID. In
 Claude Code, use a custom subagent only if it is set up to run Sol. If no
 route runs Sol, report the blocker. Do not substitute a model.
 
@@ -74,9 +76,10 @@ Skip style unless it hides a bug. Hold to the smallest change. Flag code,
 tests, or guards the intent does not need. Other paths, rare cases, small
 perf, extra compat: nits.
 blocker = intended case wrong. should = real bug callers will hit, in intent. nit = rest.
-Reply:
+Reply only in this format. It replaces any default output format you have:
 VERDICT: APPROVE or CHANGES
 S1 [blocker|should|nit] <file>:<line> <claim>. Fix: <suggestion> (stable ids)
+No findings: the VERDICT line alone.
 ```
 
 ## 3. Answer findings
